@@ -1,0 +1,1042 @@
+-- [ Encoding & Whitelisting ] --
+local JSONEncode, JSONDecode  = function(Input)
+	return game:GetService('HttpService'):JSONEncode(Input)
+end, function(Input)
+	return game:GetService('HttpService'):JSONDecode(Input)
+end
+-- [                        ] --
+
+-- [ Folder System ] --
+local Prefix;
+if isfolder and makefolder and isfile and writefile then
+    local file
+    if not isfolder('Z0R-Hub') then makefolder('Z0R-Hub') end
+    if not isfile('Z0R-Hub/Keybind.key') then writefile('Z0R-Hub/Keybind.key', 'local Keybind = Enum.KeyCode.RightControl') end
+    readfile('Z0R-Hub/Keybind.key')
+    if not isfolder('Z0R-Hub/Presets') then makefolder('Z0R-Hub/Presets') end
+    local List = listfiles('Z0R-Hub/Presets')
+    if not isfolder('Z0R-Hub/Theme') then makefolder('Z0R-Hub/Theme') end
+    if not isfolder('Z0R-Hub/Assets') then makefolder('Z0R-Hub/Assets') end
+    if isfile('config.zr') then file = readfile('config.zr') Prefix = JSONDecode(file)['Prefix'] else writefile('config.zr', JSONEncode({ ["Prefix"] = "!" })) file = readfile('config.zr') end
+    if not isfile('Z0R-Hub/Presets/Default.preset') then writefile('Z0R-Hub/Presets/Default.preset', [[
+for i, v in next, tools do
+    coroutine.wrap(
+        function()
+            local BP, BG, F = v.POSV.Value, v.GYROV.Value
+            local a, vol = 1, 0
+            while vis do
+                vol = tools[#tools].Handle.Sound.PlaybackLoudness / sens
+                ro = math.rad(a / 2 + (i * (360 / #tools)))
+                F = CFrame.new(torso.Position) * CFrame.Angles(0, ro, 0) * CFrame.new(0, 0, vol + offset)
+                BP.Position = F.p
+                BG.CFrame = CFrame.new(BG.Parent.Position, torso.Position + Vector3.new(0,tilt+math.sin(-vol*2),0))
+                a = a + speed / 2.5
+                game:GetService("RunService").Heartbeat:wait()
+                v.Handle.Velocity = Vector3.new(0, 0, 30)
+            end
+        end
+    )()
+end
+    ]]) end
+end
+--
+local Version = '7'
+local UI = game:GetObjects('rbxassetid://8569633883&version='..Version)[1]
+UI.Parent = game:GetService('CoreGui')
+
+-- [ UI Locals ] --
+local Main = UI['Frame']
+local Buttons = Main['Buttons']
+local Frames = Main['Frames']
+local Layout = Frames['UIPageLayout']
+local UserInput = game:GetService('UserInputService')
+Main['Active'] = true
+
+local MainF = Frames['Main']
+local LoggerF = Frames['Logger']
+local VisualsF = Frames['Visuals']
+local AudioF = Frames['Audios']
+local SettingsF = Frames['Settings']
+
+local MainB = Buttons['MainB']
+local LogB = Buttons['LogB']
+local VisB = Buttons['VisB']
+local AudB = Buttons['AudB']
+local SetB = Buttons['SetB']
+
+local Play1 = MainF.I['Play']
+local mPlay = MainF.I['mPlay']
+local Input1 = MainF.I['Input']
+local Sync1 = MainF.A['Sync']
+local Length = MainF.A['Length']
+local Slider = Length['Slider']
+local Pos = Length['Pos']
+local Left = Length['Left']
+local Song = Length['Song']
+local DupeB = MainF.D['Dupe']
+local DupeI = MainF.D['Input']
+
+local WorkspaceB = LoggerF.I['Workspace']
+local GameB = LoggerF.I['wGame']
+local Logs = LoggerF.O['Logs']
+local LHolder = LoggerF.O['sLabel']
+local Saved = LoggerF.O['Saved']
+
+local Input2 = VisualsF.I['Input']
+local Play2 = VisualsF.I['Play']
+local Sync2 = VisualsF.I['Sync']
+local Target =  VisualsF.I['Target']
+local Speed = VisualsF.S.Speed['Input']
+local Offset = VisualsF.S.Offset['Input']
+local Sens = VisualsF.S.Sens['Input']
+local Tilt = VisualsF.S.Tilt['Input']
+local Holder = VisualsF.P.Back['Holder']
+local Presets = VisualsF.P.Back['Presets']
+local VisualB = VisualsF.I['VisualB']
+
+local SaveIn = AudioF.I['Input']
+local SaveB = AudioF.I['Save']
+local SaveHolder = AudioF.P.Back['Holder']
+local Saves = AudioF.P.Back['Presets']
+
+local KeyInput = SettingsF.I['Input']
+
+--
+
+-- [ Main Locals ]
+local Player = game:GetService('Players').LocalPlayer
+local Char = Player.Character
+local Ignore = {'rbxasset://sounds/action_footsteps_plastic.mp3','rbxasset://sounds/impact_water.mp3','rbxasset://sounds/uuhhh.mp3','rbxasset://sounds/action_swim.mp3','rbxasset://sounds/action_get_up.mp3','rbxasset://sounds/action_falling.mp3','rbxasset://sounds/action_jump.mp3','rbxasset://sounds/action_jump_land.mp3'}
+local Commands = {'Mute','Loopmute','Unloopmute','Equip','Dupe <amount>','Stopdupe','Rejoin','Goto','Noclip','Clip','Demesh','Prefix'}
+local UIS = game:GetService('UserInputService')
+local UserInput = game:GetService('UserInputService')
+local Mouse = game.Players.LocalPlayer:GetMouse()
+local pg = true
+local listadd = true
+local selected = nil
+local grab = false
+local noclip = false
+local LogPlay = false
+local dcPlay = false
+local Held = false
+local BackPlay = false
+local fileName
+
+--
+
+-- [ Pages ] --
+MainB.MouseButton1Down:connect(function()
+    Layout:JumpTo(MainF)
+end)
+LogB.MouseButton1Down:connect(function()
+    Layout:JumpTo(LoggerF)
+end)
+VisB.MouseButton1Down:connect(function()
+    Layout:JumpTo(VisualsF)
+end)
+AudB.MouseButton1Down:connect(function()
+    Layout:JumpTo(AudioF)
+end)
+SetB.MouseButton1Down:connect(function()
+    Layout:JumpTo(SettingsF)
+end)
+
+-- [       ]
+
+-- [ Functions ] --
+function Format(Int)
+    return string.format('%02i', Int)
+end
+function getVersion(id)
+	return tonumber(string.match(game:HttpGetAsync("http://www.roblox.com/studio/plugins/info?assetId=" .. tostring(tonumber(id))), "value=\"(%d+)\""))
+end
+function confuzzle(str)
+    if tonumber(str) then
+        str = ("0x%02x"):format(str)
+    end
+    return (str:gsub(".", function(s)
+        return ("%%%02x"):format(s:byte())
+    end))
+end
+function genId(ToConvert)
+	local function E(id, bool)
+		return "&" .. confuzzle("assetversionid") .. (bool and "=\n\r" or "\n\r=") .. confuzzle(id) or ""
+	end
+	local IdStorage = {E(getVersion(ToConvert), true), E(307918992), E(307950810), E(363537554), E(359218057)}
+	local function X()
+		return tostring(table.remove(IdStorage, math.random(#IdStorage, #IdStorage)))
+	end
+	local RetId = ('\n'..X()..X()..X()):rep(3)
+	while #IdStorage > 0 do
+		RetId = RetId .. X()
+	end
+	return tostring(RetId)
+end
+
+local Tween = function(Obj,Time,Style,Direction,Table)
+	game:GetService('TweenService'):Create(Obj,TweenInfo.new(Time,Enum.EasingStyle[Style],Enum.EasingDirection[Direction],0,false,0),Table):Play()
+end
+
+function plr(String)
+local Found = {}
+local strl = String:lower()
+    for i, v in pairs(game.Players:GetPlayers()) do
+        if v.Name:lower():sub(1, #String) == String:lower() or v.DisplayName:lower():sub(1, #String) == String:lower() then
+            table.insert(Found, v)
+        end
+    end
+    return Found
+end
+
+function Visual(v)
+    vis = true
+    player = game.Players.LocalPlayer
+    char = game.Players.LocalPlayer.Character
+    tools = {}
+    speed = 1; offset = 1; sens = 150; tilt = 5
+    if char.Humanoid.RigType == Enum.HumanoidRigType.R15 then 
+        torso = char.UpperTorso 
+    else 
+        torso = char.Torso 
+    end 
+    for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+        v.Parent = game.Players.LocalPlayer.Character
+    end
+    for i,v in pairs(char:GetDescendants()) do
+        if v:IsA('Tool') then
+            table.insert(tools, v)
+        end
+    end
+    for i,v in pairs(char:GetDescendants()) do 
+        if v:IsA('Tool') then 
+            BG = Instance.new('BodyGyro', v.Handle); BG.Name = 'GYRO'; BG.MaxTorque=Vector3.new(1/0,1/0,1/0); BG.P=100000
+            BP = Instance.new('BodyPosition', v.Handle); BP.Name = 'BODYPOS'; BP.MaxForce = Vector3.new(1/0,1/0,1/0); BP.P = 100000; BP.Position = v.Handle.Position
+            BPV = Instance.new('ObjectValue', v); BPV.Name = 'POSV'; BPV.Value = BP
+            BGV = Instance.new('ObjectValue', v); BGV.Name = 'GYROV'; BGV.Value = BG
+            v.Handle:BreakJoints()
+        end 
+    end
+    loadstring(v)()
+    wait(0.05)
+    for i,v in pairs(game.Players.LocalPlayer.Character.Humanoid:GetPlayingAnimationTracks()) do
+        v:stop()
+    end
+    for i,v in next, tools do 
+        v.Unequipped:connect(function()
+            vis = false
+            pcall(function()
+                v.Handle['GYRO']:Remove()
+                v.Handle['BODYPOS']:Remove()
+                v['POSV']:Remove()
+                v['GYROV']:Remove()
+            end)
+        end)
+    end
+end
+
+function Mesh()
+    char = game.Players.LocalPlayer.Character
+    for i,v in next, char:GetDescendants() do
+        if v:IsA('SpecialMesh') then
+            if v.Parent.Parent:IsA('Tool') then
+                v:remove()
+            end
+        end
+    end
+end
+
+function Equip()
+    Player = game.Players.LocalPlayer
+    local Arm
+    if Player.Character:FindFirstChild('RightHand') then
+        Arm = Player.Character['RightHand']
+    else
+        Arm = Player.Character['Right Arm']
+    end
+    for i,v in next, Player.Backpack:GetChildren() do
+        if v:IsA('Tool') then
+        v.Parent = Player.Character
+            for _, x in pairs(Arm:GetChildren()) do
+                if x.Name == 'RightGrip' then
+                    local amt = _
+                    local num = 0
+                    for _ = 1, amt do
+                        wait()
+                        num = num + 1
+                        x.Name = 'Grip_'..num
+                    end
+                end
+            end
+        end
+    end
+end
+
+local Normal = {}
+for i = 33, 126 do
+	local x = string.char(i)
+	Normal[x] = x
+end
+local function CleanStr(x)
+	return x:lower():gsub(".", function(i)
+		return Normal[i] or ""
+	end):lower()
+end
+local function Unhash(x)
+	return (x:gsub("%%(%x%x)", function(x)
+		return string.char(tonumber(x, 16))
+	end))
+end
+local Market = game:GetService("MarketplaceService")
+function decryptAssetId(InputId)
+	local IdCache, TestedCache = {}, {}
+	InputId = CleanStr(Unhash(CleanStr(InputId)))
+	while InputId:find("0x0x", 1, true) do
+		InputId = InputId:gsub("0x0x", "0x")
+	end
+	for v in InputId:gsub("rbxassetid://", "id="):gsub("https?://www.roblox.com/asset/%?", ""):gmatch("([^&]+)") do
+		local f = v:find("=", 1, true)
+		local Ins = f and tonumber(v:sub(f + 1))
+		if f and Ins and not table.find(TestedCache, Ins) and not table.find(IdCache, Ins) then
+			TestedCache[#TestedCache + 1] = Ins
+			if v:match("^assetversionid=") then
+				local x = tonumber(game:HttpGet("" .. Ins))
+				Ins = x or Ins
+			end
+			if not table.find(IdCache, Ins) then
+				local a, b = pcall(Market.GetProductInfo, Market, Ins)
+				if a and b and b.AssetTypeId == 3 then
+				    table.remove(IdCache)
+					IdCache[#IdCache + 1] = tostring(Ins)
+				end
+			end
+		end
+	end
+	return table.concat(IdCache, ", ")
+end
+
+function Dupe(Amount)
+    local DropT = {}
+    stopDupe = false
+    local Pos = Player.Character.HumanoidRootPart.CFrame
+    wait(0.1)
+    Player.Character:MoveTo(Vector3.new(0,1e7,0))
+    wait(0.15)
+    Player.Character.HumanoidRootPart.Anchored = true
+    
+    for i = 1, Amount do
+        if stopDupe then
+            break
+        end
+        Player.Character:MoveTo(Vector3.new(0,1e7,0))
+        wait(0.15)
+        for i,v in pairs(Player.Backpack:GetChildren()) do
+            if v:IsA('Tool') then
+                v.Parent = Player.Character
+                wait(0.1)
+                v.Parent = workspace
+                table.insert(DropT, v)
+            end
+        end
+        Player.Character:BreakJoints()
+        Player.CharacterAdded:wait()
+        Player.Character:MoveTo(Vector3.new(Pos))
+        wait(0.1)
+        if stopDupe then
+            break
+        end
+    end
+    for i,v in pairs(DropT) do
+        firetouchinterest(v.Handle, Player.Character.HumanoidRootPart, 0)
+        repeat wait() until v.Parent == Player.Character
+    end
+    Player.Character.HumanoidRootPart.CFrame = Pos
+end
+
+function Slide()
+    while pl do
+        wait()
+        local errors = pcall(function()
+            local m
+            if BackPlay then
+                repeat wait() until BPlaying == true
+                for i,v in pairs(Player.Backpack:GetDescendants()) do if v:IsA('Sound') then m = v end end
+            else
+                m = Player.Character:FindFirstChildOfClass('Tool'):FindFirstChildWhichIsA('Sound',true)
+            end
+            Slider.Position = UDim2.new(m.TimePosition / m.TimeLength, 0, -0.714, 0)
+            local t = m.TimeLength - m.TimePosition
+            local seconds = math.floor(t % 60)
+            local minutes = math.floor(t / 60) % 60
+            local t2 = m.TimeLength
+            local seconds2 = math.floor(t2 % 60)
+            local minutes2 = math.floor(t2 / 60) % 60
+            Pos.Text = Format(minutes)..':'..Format(seconds)
+            Left.Text = '-'..Format(minutes2)..':'..Format(seconds2)
+            wait()
+        end)
+        if errors then
+            -- Err
+        else
+            pl = false
+        end
+    end
+end
+local Dragging 
+Slider.MouseButton1Down:connect(function()
+    if not pl then
+        return
+    else
+        Dragging = true
+        pl = false
+        repeat
+            Slider.Position = UDim2.new(0,(Mouse.X - Length.AbsolutePosition.X),-0.714,0)
+            if Slider.Position.X.Offset < 0 then
+                Slider.Position = UDim2.new(0,0,-0.714,0)
+            elseif Slider.Position.X.Offset + Slider.Size.X.Offset > Length.AbsoluteSize.X then
+                Slider.Position = UDim2.new(0, (Length.AbsoluteSize.X-Slider.Size.X.Offset), -0.714, 0)
+            end
+            wait()
+        until Dragging == false
+    end
+end)
+Mouse.Button1Up:connect(function()
+    Dragging = false
+    pl = true
+end)
+Slider.MouseButton1Up:connect(function()
+    Dragging = false
+    Player = game.Players.LocalPlayer
+    Char = Player.Character
+    if not BackPlay then
+        for i,v in pairs(Char:GetDescendants()) do
+            if v:IsA('Tool') then
+                for _, z in pairs(v:GetDescendants()) do
+                    if z:IsA('Sound') then
+                        z.TimePosition = (Slider.AbsolutePosition.X-Length.AbsolutePosition.X) / (Length.AbsoluteSize.X-Slider.Size.X.Offset) * z.TimeLength
+                    end
+                end
+            end
+        end
+    else
+        for i,v in pairs(Player.Backpack:GetDescendants()) do
+            if v:IsA('Tool') then
+                for _, z in pairs(v:GetDescendants()) do
+                    if z:IsA('Sound') then
+                        z.TimePosition = (Slider.AbsolutePosition.X-Length.AbsolutePosition.X) / (Length.AbsoluteSize.X-Slider.Size.X.Offset) * z.TimeLength
+                    end
+                end
+            end
+        end        
+    end
+    if not Dragging then
+        pl = true
+        Slide()
+    end
+end)
+Target.FocusLost:connect(function()
+    if Target.Text == '' then
+        Target.Text = 'Enter a User'
+        wait(1)
+        Target.Text = ''
+    end
+    for i,v in pairs(plr(string.sub(Target.Text, 1))) do
+        torso = v.Character['HumanoidRootPart']
+    end
+    wait(0.5)
+    pInput.Text = ''
+end)
+Speed.FocusLost:connect(function()
+    if tonumber(Speed.Text) <= 35 then 
+        speed = tonumber(Speed.Text)
+        wait(2.5)
+        Speed.Text = ''
+    else
+        Speed.Text = '0-35 Only'
+        wait(2.5)
+        Speed.Text = ''
+    end
+end)
+Sens.FocusLost:connect(function()
+    if tonumber(Sens.Text) >= 20 and tonumber(Sens.Text) <= 300 then
+        sens = tonumber(Sens.Text)
+        wait(2.5)
+        Sens.Text = ''
+    else
+        Sens.Text = '20-300 Only'
+        wait(2.5)
+        Sens.Text = ''
+    end
+end)
+Offset.FocusLost:connect(function()
+    if tonumber(Offset.Text) <= 100 then
+        offset = tonumber(Offset.Text)
+        wait(2.5)
+        Offset.Text = ''
+    else
+        Offset.Text = '0-100 Only'
+        wait(2.5)
+        Offset.Text = ''
+    end
+end)
+Tilt.FocusLost:connect(function()
+    if tonumber(Tilt.Text) <= 30 then
+        tilt = tonumber(Tilt.Text)
+        wait(2.5)
+        Tilt.Text = ''
+    else
+        Tilt.Text = '0-30 Only' 
+        wait(2.5)
+        Tilt.Text = ''
+    end
+end)
+Sync1.MouseButton1Down:connect(function()
+    if not BackPlay then
+        for i,v in pairs(Player.Character:GetDescendants()) do
+            if v:IsA('Sound') then
+                v.TimePosition = 0
+            end
+        end
+    else
+        for i,v in pairs(Player.Backpack:GetDescendants()) do
+            if v:IsA('Sound') then
+                v.TimePosition = 0
+            end
+        end        
+    end
+end)
+Sync2.MouseButton1Down:connect(function()
+    if not BackPlay then
+        for i,v in pairs(Player.Character:GetDescendants()) do
+            if v:IsA('Sound') then
+                v.TimePosition = 0
+            end
+        end
+    else
+        for i,v in pairs(Player.Backpack:GetDescendants()) do
+            if v:IsA('Sound') then
+                v.TimePosition = 0
+            end
+        end        
+    end
+end)
+Play1.MouseButton1Down:connect(function(Enter)
+    if Enter then
+        local errors = pcall(function()
+            local Playing = game:GetService('MarketplaceService'):GetProductInfo(Input1.Text:match("%d+")).Name
+            Song.Text = 'Playing : '..Playing
+        end)
+        if errors then else end
+    end
+end)
+mPlay.MouseButton1Down:connect(function(Enter)
+    if Enter then
+        local errors = pcall(function()
+            local Playing = game:GetService('MarketplaceService'):GetProductInfo(Input1.Text:match("%d+")).Name
+            Song.Text = 'Playing : '..Playing
+        end)
+        if errors then else end
+    end
+end)
+Play2.MouseButton1Down:connect(function(Enter)
+    if Enter then
+        local errors = pcall(function()
+            local Playing = game:GetService('MarketplaceService'):GetProductInfo(Input2.Text:match("%d+")).Name
+            Song.Text = 'Playing : '..Playing
+        end)
+        if errors then else end
+    end
+end)
+
+for i,v in pairs(Player.Backpack:GetDescendants()) do
+    if v:IsA('Tool') then
+        v.Unequipped:connect(function()
+            pcall(function()
+                Slider:TweenPosition(UDim2.new(0,0,-0.714,0))
+                Length.Pos.Text = '0:00'
+                Length.Left.Text = '-0:00'
+                Song.Text = 'Playing : Nothing'
+                wait()
+            end)
+        end)
+    end
+end
+Play1.MouseButton1Down:Connect(function()
+    pl = true
+    Slide()
+end)
+mPlay.MouseButton1Down:Connect(function()
+    pl = true
+    Slide()
+end)
+Play2.MouseButton1Down:Connect(function()
+    pl = true
+    Slide()
+end)
+WorkspaceB.MouseButton1Down:connect(function()
+    local wspace = workspace:GetDescendants()
+    for i,v in pairs(Logs:GetDescendants()) do
+        if not v:IsA('UIListLayout') then
+            v:remove()
+        end
+    end
+    for i = 1, #wspace do
+        local v = wspace[i]
+        if v:IsA('Sound') then
+            if v.IsLoaded ~= false and not table.find(Ignore, v.SoundId) then
+                local Holder = LHolder:clone()
+                inf, info = pcall(function() return game:GetService('MarketplaceService'):GetProductInfo(v.SoundId:gsub('rbxassetid://', '', 1):gsub('http://www.roblox.com/asset/%?id=', '', 1):gsub('https://www.roblox.com/asset/%?id=', '', 1)) 
+                end)
+                if inf then
+                    Holder.Text = info.Name
+                elseif v.SoundId:match('^rbxassetid://sounds/') then
+                     Holder.Text = v.SoundId:gsub('rbxasset://sounds/', '', 1)
+                else
+                     Holder.Text = v.Name
+                end
+                Holder.Visible = true
+                Holder.Name = v.SoundId
+                Holder.Text = v.SoundId:gsub('http://www.roblox.com/asset/%?id=', '', 1)
+                Tween(Logs, 0.2, 'Quad', 'Out', {CanvasSize = UDim2.new(0, 0, 0, Logs.UIListLayout.AbsoluteContentSize.Y*1.5)})
+                Holder.Parent = Logs
+            end
+        end
+    end
+end)
+GameB.MouseButton1Down:connect(function()
+    local wspace = game:GetDescendants()
+    for i,v in pairs(Logs:GetDescendants()) do
+        if not v:IsA('UIListLayout') then
+            v:remove()
+        end
+    end
+    for i = 1, #wspace do
+        local v = wspace[i]
+        if v:IsA('Sound') then
+            if v.IsLoaded ~= false and not table.find(Ignore, v.SoundId) then
+                local Holder = LHolder:clone()
+                inf, info = pcall(function() return game:GetService('MarketplaceService'):GetProductInfo(v.SoundId:gsub('rbxassetid://', '', 1):gsub('http://www.roblox.com/asset/%?id=', '', 1):gsub('https://www.roblox.com/asset/%?id=', '', 1)) 
+                end)
+                if inf then
+                    Holder.Text = info.Name
+                elseif v.SoundId:match('^rbxassetid://sounds/') then
+                    Holder.Text = v.SoundId:gsub('rbxasset://sounds/', '', 1)
+                else
+                    Holder.Text = v.Name
+                end
+                Holder.Visible = true
+                Holder.Name = v.SoundId
+                Holder.Text = v.SoundId:gsub('http://www.roblox.com/asset/%?id=', '', 1)
+                Tween(Logs, 0.2, 'Quad', 'Out', {CanvasSize = UDim2.new(0, 0, 0, Logs.UIListLayout.AbsoluteContentSize.Y*1.5)})
+                Holder.Parent = Logs
+            end
+        end
+    end
+end)
+DupeB.MouseButton1Down:connect(function(s)
+    if not tonumber(DupeI.Text) then
+    else
+        Dupe(tonumber(DupeI.Text))
+    end
+end)
+Play1.MouseButton1Down:connect(function(s)
+    if s then
+        wait()
+        local ID = genId(Input1.Text)
+        ID = string.gsub(ID, '.', function(symbol)
+            return symbol .. ('   '):rep(5)
+        end)
+        ID = string.gsub(ID, '%x%X', function(symbol)
+            return symbol .. ('   '):rep(5)
+        end)
+        Header = [[
+                    /$$$$$$$$  /$$$$$$  /$$$$$$$ 
+                    |_____ $$  /$$$_  $$| $$__  $$
+                         /$$/ | $$$$\ $$| $$  \ $$
+                        /$$/  | $$ $$ $$| $$$$$$$/
+                       /$$/   | $$\ $$$$| $$__  $$
+                      /$$/    | $$ \ $$$| $$  \ $$
+                     /$$$$$$$$|  $$$$$$/| $$  | $$
+                    |________/ \______/ |__/  |__/
+        ]]
+        ID = 'nil\n\?\n '..Header..'        ["z0r is daddy | discord.gg/niggers"]' .. ID
+        if not BackPlay then
+            for i,v in next, Player.Character:GetDescendants() do
+                if v:IsA('RemoteEvent') then
+                    v:FireServer('PlaySong', ID)
+                end
+            end
+        else
+            local tools2 = {}
+            T = false
+            for i,v in pairs(Player.Character:GetChildren()) do
+                if v:IsA('Tool') then
+                    table.insert(tools2, v)
+                    T = true
+                end
+            end
+            if not T then
+                for i,v in pairs(Player.Backpack:GetChildren()) do
+                    if v:IsA('Tool') then
+                        v.Parent = Char
+                        table.insert(tools2, v)
+                    end
+                end
+            end
+
+            for i,v in pairs(Char:GetDescendants()) do
+                if v:IsA('RemoteEvent') then
+                    v:FireServer('PlaySong', ID)
+	            end
+            end
+            wait(0.6)
+            for i,v in next, tools2 do
+                for _, x in pairs(v:GetDescendants()) do
+                    if x:IsA('Sound') then
+                        x.Parent = game:GetService('CorePackages')
+                        Player.Character.Humanoid:UnequipTools()
+                        wait(0.2)
+                        for a,b in next, tools2 do
+                            x.Parent = b
+                        end
+                    end
+                end
+            end
+            for i,v in pairs(Player.Backpack:GetDescendants()) do
+                if v:IsA('Sound') then
+                    v:Play()
+                    BPlaying = true
+                end
+            end
+            for i,v in pairs(Player:GetDescendants()) do
+                if v:IsA('Sound') then
+                    v.TimePosition = 0
+                end
+            end            
+        end
+    end
+end)
+
+mPlay.MouseButton1Down:connect(function(s)
+    if s then
+        for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+        end
+        for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+            v.Parent = game.Players.LocalPlayer.Character
+        end
+        wait()
+        local ID = genId(Input1.Text)
+        ID = string.gsub(ID, '.', function(symbol)
+            return symbol .. ('   '):rep(5)
+        end)
+        ID = string.gsub(ID, '%x%X', function(symbol)
+            return symbol .. ('   '):rep(5)
+        end)
+        Header = [[
+                    /$$$$$$$$  /$$$$$$  /$$$$$$$ 
+                    |_____ $$  /$$$_  $$| $$__  $$
+                         /$$/ | $$$$\ $$| $$  \ $$
+                        /$$/  | $$ $$ $$| $$$$$$$/
+                       /$$/   | $$\ $$$$| $$__  $$
+                      /$$/    | $$ \ $$$| $$  \ $$
+                     /$$$$$$$$|  $$$$$$/| $$  | $$
+                    |________/ \______/ |__/  |__/
+        ]]
+        ID = 'nil\n\?\n '..Header..'        ["z0r is daddy | discord.gg/niggers"]' .. ID
+        if not BackPlay then
+            for i,v in next, Player.Character:GetDescendants() do
+                if v:IsA('RemoteEvent') then
+                    v:FireServer('PlaySong', ID)
+                end
+            end
+        else
+            local tools2 = {}
+            T = false
+            for i,v in pairs(Player.Character:GetChildren()) do
+                if v:IsA('Tool') then
+                    table.insert(tools2, v)
+                    T = true
+                end
+            end
+            if not T then
+                for i,v in pairs(Player.Backpack:GetChildren()) do
+                    if v:IsA('Tool') then
+                        v.Parent = Char
+                        table.insert(tools2, v)
+                    end
+                end
+            end
+
+            for i,v in pairs(Char:GetDescendants()) do
+                if v:IsA('RemoteEvent') then
+                    v:FireServer('PlaySong', ID)
+	            end
+            end
+            wait(0.6)
+            for i,v in next, tools2 do
+                for _, x in pairs(v:GetDescendants()) do
+                    if x:IsA('Sound') then
+                        x.Parent = game:GetService('CorePackages')
+                        Player.Character.Humanoid:UnequipTools()
+                        wait(0.2)
+                        for a,b in next, tools2 do
+                            x.Parent = b
+                        end
+                    end
+                end
+            end
+            for i,v in pairs(Player.Backpack:GetDescendants()) do
+                if v:IsA('Sound') then
+                    v:Play()
+                    BPlaying = true
+                end
+            end
+            for i,v in pairs(Player:GetDescendants()) do
+                if v:IsA('Sound') then
+                    v.TimePosition = 0
+                end
+            end            
+        end
+    end
+end)
+
+Play2.MouseButton1Down:connect(function(s)
+    if s then
+        for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+            v.Parent = game.Players.LocalPlayer.Character
+        end
+        wait()
+        local ID = genId(Input2.Text)
+        ID = string.gsub(ID, '.', function(symbol)
+            return symbol .. ('   '):rep(5)
+        end)
+        ID = string.gsub(ID, '%x%X', function(symbol)
+            return symbol .. ('   '):rep(5)
+        end)
+        Header = [[
+                    /$$$$$$$$  /$$$$$$  /$$$$$$$ 
+                    |_____ $$  /$$$_  $$| $$__  $$
+                         /$$/ | $$$$\ $$| $$  \ $$
+                        /$$/  | $$ $$ $$| $$$$$$$/
+                       /$$/   | $$\ $$$$| $$__  $$
+                      /$$/    | $$ \ $$$| $$  \ $$
+                     /$$$$$$$$|  $$$$$$/| $$  | $$
+                    |________/ \______/ |__/  |__/
+        ]]
+        ID = 'nil\n\?\n '..Header..'        ["z0r is daddy | discord.gg/niggers"]' .. ID
+        if not BackPlay then
+            for i,v in next, Player.Character:GetDescendants() do
+                if v:IsA('RemoteEvent') then
+                    v:FireServer('PlaySong', ID)
+                end
+            end
+        else
+            local tools2 = {}
+            T = false
+            for i,v in pairs(Player.Character:GetChildren()) do
+                if v:IsA('Tool') then
+                    table.insert(tools2, v)
+                    T = true
+                end
+            end
+            if not T then
+                for i,v in pairs(Player.Backpack:GetChildren()) do
+                    if v:IsA('Tool') then
+                        v.Parent = Char
+                        table.insert(tools2, v)
+                    end
+                end
+            end
+
+            for i,v in pairs(Char:GetDescendants()) do
+                if v:IsA('RemoteEvent') then
+                    v:FireServer('PlaySong', ID)
+	            end
+            end
+            wait(0.6)
+            for i,v in next, tools2 do
+                for _, x in pairs(v:GetDescendants()) do
+                    if x:IsA('Sound') then
+                        x.Parent = game:GetService('CorePackages')
+                        Player.Character.Humanoid:UnequipTools()
+                        wait(0.2)
+                        for a,b in next, tools2 do
+                            x.Parent = b
+                        end
+                    end
+                end
+            end
+            for i,v in pairs(Player.Backpack:GetDescendants()) do
+                if v:IsA('Sound') then
+                    v:Play()
+                    BPlaying = true
+                end
+            end
+            for i,v in pairs(Player:GetDescendants()) do
+                if v:IsA('Sound') then
+                    v.TimePosition = 0
+                end
+            end            
+        end
+    end
+end)
+
+sList = listfiles('Z0R-Hub/Assets')
+SaveB.MouseButton1Down:connect(function(s)
+    if not tonumber(SaveIn.Text) then
+    else
+        writefile('Z0R-Hub/Assets/'..SaveIn.Text..'.audio', '')
+        aa = SaveHolder:clone()
+        ff = aa['AudioFrame']
+        local AudioName = game:GetService('MarketplaceService'):GetProductInfo(SaveIn.Text:match("%d+")).Name
+        ff.Label.Text = SaveIn.Text .. ' ('..AudioName..')'
+        ff.Button.Name = SaveIn.Text
+        aa.Parent = Saves
+        aa.Visible = true
+        Saves.CanvasSize = UDim2.new(0, 0, 0 -#sList, 0)
+        Saves.CanvasSize = UDim2.new(0, 0, 0 +#sList/2, 0)
+    end
+end)
+
+for i,v in next, sList do
+    aa = SaveHolder:clone()
+    ff = aa['AudioFrame']
+    local AudioName = game:GetService('MarketplaceService'):GetProductInfo(v:split('\\')[2]:split('.')[1]:match("%d+")).Name
+    ff.Label.Text = v:split('\\')[2]:split('.')[1] .. ' ('..AudioName..')'
+    aa.Parent = Saves
+    ff.Button.Name = v:split('\\')[2]:split('.')[1]
+    aa.Visible = true
+    Saves.CanvasSize = UDim2.new(0, 0, 0 -#sList, 0)
+    Saves.CanvasSize = UDim2.new(0, 0, 0 +#sList/2, 0)
+end
+
+List = listfiles('Z0R-Hub/Presets')
+for i,v in next, List do
+    for i = #List, #List do
+        local Holder = Holder:clone()
+        local Frame = Holder.VisFrame
+        Frame.Button.Name = v:sub(17)
+        Frame.Label.Text = v:sub(17):split('.')[1]
+        Holder.Parent = Presets
+        Holder.Visible = true
+        Presets.CanvasSize = UDim2.new(0, 0, 0 -#List, 0)
+        Presets.CanvasSize = UDim2.new(0, 0, 0 +#List/2, 0)
+    end
+end
+
+for i,v in next, Presets:GetDescendants() do
+    if v:IsA('TextButton') then
+        v.MouseButton1Down:connect(function()
+            selected = nil
+            selected = v.Name
+        end)
+    end
+end
+
+for i,v in next, Saves:GetDescendants() do
+    if v:IsA('TextButton') then
+        v.MouseButton1Down:connect(function()
+            selected = nil
+            Input1.Text = tonumber(v.Name)
+            Input2.Text = tonumber(v.Name)
+        end)
+    end
+end
+VisualB.MouseButton1Down:connect(function()
+    if selected then
+        if vis then
+            Tool = char:FindFirstChildOfClass('Tool')
+            ID = Tool.Handle.Sound.SoundId:gsub('http://www.roblox.com/asset/%?id=', '', 1)
+            Time = Tool.Handle.Sound.TimePosition
+            char.Humanoid:UnequipTools()
+            Visual(readfile('Z0R-Hub/Presets/'..selected, true))
+            selected = nil
+            for i,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                if v:IsA('RemoteEvent') then
+                    v:FireServer('PlaySong', ID)
+                end
+            end
+            wait(0.1)
+            for i,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                if v:IsA('Sound') then
+                    v.TimePosition = Time
+                end
+            end
+        else
+            Visual(readfile('Z0R-Hub/Presets/'..selected, true))
+            for i,v in next, char.Humanoid:GetPlayingAnimationTracks() do
+                v:stop()
+            end
+            selected = nil
+        end
+    end
+end)
+
+function dragify(Frame)
+    dragToggle = nil
+    local dragSpeed = 0
+    dragInput = nil
+    dragStart = nil
+    local dragPos = nil
+    function updateInput(input)
+        local Delta = input.Position - dragStart
+        local Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + Delta.X, startPos.Y.Scale, startPos.Y.Offset + Delta.Y)
+        game:GetService("TweenService"):Create(Frame, TweenInfo.new(0.25), {Position = Position}):Play()
+    end
+    Frame.InputBegan:Connect(function(input)
+        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and UIS:GetFocusedTextBox() == nil then
+            dragToggle = true
+            dragStart = input.Position
+            startPos = Frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragToggle = false
+                end
+            end)
+        end
+    end)
+    Frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input == dragInput and dragToggle then
+            updateInput(input)
+        end
+    end)
+end
+
+dragify(Main)
+
+local kf ; kf = KeyInput.Focused:connect(function()
+    local kIn ; kIn = UserInput.InputBegan:connect(function(In, gameProcessedEvent)
+        if In.UserInputType == Enum.UserInputType.Keyboard then
+            KeyInput.Text = tostring(In.KeyCode):split('.')[3]
+            Keybind = 'Enum.KeyCode.'..tostring(In.KeyCode):split('.')[3]..''
+            writefile('Z0R-Hub/Keybind.key', 'Keybind = Enum.KeyCode.'..tostring(In.KeyCode):split('.')[3]) 
+            kIn:Disconnect()
+        end
+    end)
+end)
+
+UserInput.InputBegan:connect(function(InputObj, Process)
+    if not Process then
+        loadstring(readfile('Z0R-Hub/Keybind.key', true))()
+        if InputObj.KeyCode == Keybind then
+            if Main.Visible then
+                Main.Visible = false
+            else
+                Main.Visible = true
+            end
+        end
+    end
+end)
+
+loadstring(readfile('Z0R-Hub/Keybind.key', true))()
+KeyInput.Text = tostring(Keybind):split('.')[3]
+
+setfflag('AbuseReportScreenshotPercentage', 0)
+setfflag('DFFlagAbuseReportScreenshot', 'False')
+while wait() do
+    Player = game.Players.LocalPlayer
+end
