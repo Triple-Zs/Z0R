@@ -121,6 +121,7 @@ local dcPlay = false
 local Held = false
 local BackPlay = false
 local fileName
+Keybind = Enum.KeyCode.RightControl
 
 --
 
