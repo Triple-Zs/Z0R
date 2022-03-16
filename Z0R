@@ -41,7 +41,7 @@ end
     ]]) end
 end
 --
-local Version = '11'
+local Version = '12'
 local UI = game:GetObjects('rbxassetid://8569633883&version='..Version)[1]
 UI.Parent = game:GetService('CoreGui')
 
@@ -108,6 +108,10 @@ local Tilt = VisualsF.S.Tilt['Input']
 local Holder = VisualsF.P.Back['Holder']
 local Presets = VisualsF.P.Back['Presets']
 local VisualB = VisualsF.I['VisualB']
+local SpeedS = VisualsF.S['SpeedS']
+local OffsetS = VisualsF.S['OffsetS']
+local TiltS = VisualsF.S['TiltS']
+local SensS = VisualsF.S['SensS']
 
 local SaveIn = AudioF.I['Input']
 local SaveB = AudioF.I['Save']
@@ -573,6 +577,89 @@ Target.FocusLost:connect(function()
     end
     wait(0.5)
     pInput.Text = ''
+end)
+
+local sPosX = SpeedS.AbsolutePosition['X']
+local oPosX = OffsetS.AbsolutePosition['X']
+local ssPosX = SensS.AbsolutePosition['X']
+local tPosX = TiltS.AbsolutePosition['X']
+
+local sSizeX = SpeedS.AbsoluteSize['X']
+local oSizeX = OffsetS.AbsoluteSize['X']
+local ssSizeX = SensS.AbsoluteSize['X']
+local tSizeX = TiltS.AbsoluteSize['X']
+
+SpeedS.MouseButton1Down:connect(function()
+    SpeedH = true
+    SpeedS.oBar.Size = UDim2.new(math.clamp((Mouse.X - SpeedS.AbsolutePosition.X)/sSizeX,0,1),0,1,0)
+    SpeedS.Percent.Text = math.floor(SpeedS.oBar.Size.X.Scale * 35)
+    speed = tonumber(SpeedS.Percent.Text)
+end)
+game:GetService("UserInputService").InputEnded:Connect(function(input, gp)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		SpeedH = false
+	end
+end)
+Mouse.Move:connect(function()
+    if SpeedH then
+        SpeedS.oBar.Size = UDim2.new(math.clamp((Mouse.X - SpeedS.AbsolutePosition.X )/sSizeX,0,1),0,1,0) 
+        SpeedS.Percent.Text = math.floor(SpeedS.oBar.Size.X.Scale * 35)
+        speed = tonumber(SpeedS.Percent.Text)
+    end
+end)
+OffsetS.MouseButton1Down:connect(function()
+    OffsetH = true
+    OffsetS.oBar.Size = UDim2.new(math.clamp((Mouse.X - OffsetS.AbsolutePosition.X)/oSizeX,0,1),0,1,0)
+    OffsetS.Percent.Text = math.floor(OffsetS.oBar.Size.X.Scale * 100)
+    offset = tonumber(OffsetS.Percent.Text)
+end)
+game:GetService("UserInputService").InputEnded:Connect(function(input, gp)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		OffsetH = false
+	end
+end)
+Mouse.Move:connect(function()
+    if OffsetH then
+        OffsetS.oBar.Size = UDim2.new(math.clamp((Mouse.X - OffsetS.AbsolutePosition.X )/oSizeX,0,1),0,1,0) 
+        OffsetS.Percent.Text = math.floor(OffsetS.oBar.Size.X.Scale * 100)
+        offset = tonumber(OffsetS.Percent.Text)
+    end
+end)
+SensS.MouseButton1Down:connect(function()
+    SensH = true
+    SensS.oBar.Size = UDim2.new(math.clamp((Mouse.X - SensS.AbsolutePosition.X)/ssSizeX,0,1),0,1,0)
+    SensS.Percent.Text = math.floor(SensS.oBar.Size.X.Scale * 300)
+    sens = tonumber(SensS.Percent.Text)
+end)
+game:GetService("UserInputService").InputEnded:Connect(function(input, gp)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		SensH = false
+	end
+end)
+Mouse.Move:connect(function()
+    if SensH then
+        SensS.oBar.Size = UDim2.new(math.clamp((Mouse.X - SensS.AbsolutePosition.X )/ssSizeX,0,1),0,1,0) 
+        SensS.Percent.Text = math.floor(SensS.oBar.Size.X.Scale * 300)
+        sens = tonumber(SensS.Percent.Text)
+    end
+end)
+TiltS.MouseButton1Down:connect(function()
+    TiltH = true
+    TiltS.oBar.Size = UDim2.new(math.clamp((Mouse.X - TiltS.AbsolutePosition.X)/tSizeX,0,1),0,1,0)
+    TiltS.Percent.Text = math.floor(TiltS.oBar.Size.X.Scale * 35)
+    tilt = tonumber(TiltS.Percent.Text)
+end)
+game:GetService("UserInputService").InputEnded:Connect(function(input, gp)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		TiltH = false
+	end
+end)
+Mouse.Move:connect(function()
+    if TiltH then
+        TiltS.oBar.Size = UDim2.new(math.clamp((Mouse.X - TiltS.AbsolutePosition.X )/tSizeX,0,1),0,1,0) 
+        TiltS.Percent.Text = math.floor(TiltS.oBar.Size.X.Scale * 35)
+        tilt = tonumber(TiltS.Percent.Text)
+    end
 end)
 Speed.FocusLost:connect(function()
     if tonumber(Speed.Text) <= 35 then 
