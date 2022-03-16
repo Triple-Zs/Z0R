@@ -41,7 +41,7 @@ end
     ]]) end
 end
 --
-local Version = '10'
+local Version = '11'
 local UI = game:GetObjects('rbxassetid://8569633883&version='..Version)[1]
 UI.Parent = game:GetService('CoreGui')
 
@@ -87,11 +87,13 @@ local DupeI = MainF.D['Input']
 
 local Teleportation = LocalF['T']
 local GrabTools = LocalF['D']
+local Flight = LocalF['F']
 local TelTarget = Teleportation['Target']
 local TelLoop = Teleportation['Loop']
 local Teleport = Teleportation['Teleport']
 local GrabLoop = GrabTools['Loop']
 local Grab = GrabTools['Grab']
+local FlyB = Flight['Fly']
 local TLoop = false
 local GLoop = false
 
@@ -279,6 +281,51 @@ if not isfile('Z0R-Hub/Discord.rpc') then
             })
         })
     end
+end
+
+local flying = false
+local deb = true 
+local ctrl = {f = 0, b = 0, l = 0, r = 0} 
+local lastctrl = {f = 0, b = 0, l = 0, r = 0} 
+local maxspeed = 400 
+local speed = 5000 
+function Fly()
+    local BG = Instance.new('BodyGyro', game.Players.LocalPlayer.Character.Head)
+    BG.P = 9e4
+    BG.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+    BG.cframe = game.Players.LocalPlayer.Character.Head.CFrame
+    local BV = Instance.new('BodyVelocity', game.Players.LocalPlayer.Character.Head)
+    BV.velocity = Vector3.new(0, 0.1, 0)
+    BV.maxForce = Vector3.new(9e9, 9e9, 9e9)
+    repeat wait()
+        game.Players.LocalPlayer.Character.Humanoid.PlatformStand = true
+    if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then 
+        speed = speed + 0.5 + (speed/maxspeed)
+        if speed > maxspeed then
+            speed = maxspeed
+        end
+    elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then 
+        speed = speed - 1
+        if speed < 0 then
+            speed = 0
+        end
+    end
+    if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+        BV.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed 
+        lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r} 
+    elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+        BV.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed 
+    else
+        BV.velocity = Vector3.new(0,0.1,0) 
+    end
+    BG.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0) 
+    until not flying
+    ctrl = {f = 0, b = 0, l = 0, r = 0} 
+    lastctrl = {f = 0, b = 0, l = 0, r = 0} 
+    speed = 0
+    BG:remove()
+    BV:remove()
+    game.Players.LocalPlayer.Character.Humanoid.PlatformStand = false
 end
 
 function Equip()
@@ -698,7 +745,48 @@ GrabLoop.MouseButton1Down:connect(function()
         GLoop = false
     end
 end)
-
+FlyB.MouseButton1Down:connect(function()
+    if not flying then
+        Fly()
+        TweenService:Create(FlyB, TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { BackgroundColor3 = Color3.fromRGB(121, 76, 76)}):play()
+        flying = true
+        while flying do
+            game.Players.LocalPlayer:GetMouse().KeyDown:connect(function(key)
+                if key:lower() == 'z' then
+                    if flying then flying = false
+                    else
+                        flying = true
+                        Fly()
+                    end
+                elseif key:lower() == 'w' then
+                    ctrl.f = 1
+                elseif key:lower() == 's' then 
+                    ctrl.b = -1 
+                elseif key:lower() == 'a' then 
+                    ctrl.l = -1 
+                elseif key:lower() == 'd' then 
+                    ctrl.r = 1 
+                end
+            end)
+        game.Players.LocalPlayer:GetMouse().KeyUp:connect(function(key)
+            if key:lower() == 'w' then 
+                ctrl.f = 0 
+            elseif key:lower() == 's' then 
+                ctrl.b = 0 
+            elseif key:lower() == 'a' then 
+                ctrl.l = 0 
+            elseif key:lower() == 'd' then 
+                ctrl.r = 0 
+            end 
+        end)
+        Fly()
+        wait()
+    end
+    else
+        TweenService:Create(FlyB, TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { BackgroundColor3 = Color3.fromRGB(43, 43, 43)}):play()
+        flying = false
+    end
+end)
 target = nil
 TelTarget.FocusLost:connect(function()
     for i,v in pairs(plr(tostring(TelTarget.Text))) do
