@@ -1083,6 +1083,15 @@ SaveB.MouseButton1Down:connect(function(s)
         Saves.CanvasSize = UDim2.new(0, 0, 0 -#sList, 0)
         Saves.CanvasSize = UDim2.new(0, 0, 0 +#sList/2, 0)
     end
+    for i,v in next, Saves:GetDescendants() do
+        if v:IsA('TextButton') then
+            v.MouseButton1Down:connect(function()
+                selected = nil
+                Input1.Text = tonumber(v.Name)
+                Input2.Text = tonumber(v.Name)
+            end)
+        end
+    end
 end)
 
 for i,v in next, sList do
