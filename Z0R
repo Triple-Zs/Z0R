@@ -287,7 +287,7 @@ local flying = false
 local ctrl = {f = 0, b = 0, l = 0, r = 0} 
 local lastctrl = {f = 0, b = 0, l = 0, r = 0} 
 local maxspeed = 100000 
-local speed = 50 
+local speedd = 50 
 function Fly()
     torso = game.Players.LocalPlayer.Character.Torso
     if not torso then
@@ -303,29 +303,29 @@ function Fly()
     repeat wait()
         game.Players.LocalPlayer.Character.Humanoid.PlatformStand = true
     if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then 
-        speed = speed + 0.5 + (speed/maxspeed)
-        if speed > maxspeed then
-            speed = maxspeed
+        speedd = speedd + 0.5 + (speedd/maxspeed)
+        if speedd > maxspeed then
+            speedd = maxspeed
         end
-    elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then 
-        speed = speed - 1
-        if speed < 0 then
-            speed = 0
+    elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speedd ~= 0 then 
+        speedd = speedd - 1
+        if speedd < 0 then
+            speedd = 0
         end
     end
     if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-        BV.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed 
+        BV.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speedd 
         lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r} 
     elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-        BV.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed 
+        BV.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speedd 
     else
         BV.velocity = Vector3.new(0,0.1,0) 
     end
-    BG.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0) 
+    BG.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speedd/maxspeed),0,0) 
     until not flying
     ctrl = {f = 0, b = 0, l = 0, r = 0} 
     lastctrl = {f = 0, b = 0, l = 0, r = 0} 
-    speed = 0
+    speedd = 0
     BG:remove()
     BV:remove()
     game.Players.LocalPlayer.Character.Humanoid.PlatformStand = false
