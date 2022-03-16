@@ -284,17 +284,20 @@ if not isfile('Z0R-Hub/Discord.rpc') then
 end
 
 local flying = false
-local deb = true 
 local ctrl = {f = 0, b = 0, l = 0, r = 0} 
 local lastctrl = {f = 0, b = 0, l = 0, r = 0} 
-local maxspeed = 400 
-local speed = 5000 
+local maxspeed = 100000 
+local speed = 50 
 function Fly()
-    local BG = Instance.new('BodyGyro', game.Players.LocalPlayer.Character.Head)
+    torso = game.Players.LocalPlayer.Character.Torso
+    if not torso then
+        torso = game.Players.LocalPlayer.Character.UpperTorso
+    end
+    local BG = Instance.new('BodyGyro', torso)
     BG.P = 9e4
     BG.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-    BG.cframe = game.Players.LocalPlayer.Character.Head.CFrame
-    local BV = Instance.new('BodyVelocity', game.Players.LocalPlayer.Character.Head)
+    BG.cframe = torso.CFrame
+    local BV = Instance.new('BodyVelocity', torso)
     BV.velocity = Vector3.new(0, 0.1, 0)
     BV.maxForce = Vector3.new(9e9, 9e9, 9e9)
     repeat wait()
