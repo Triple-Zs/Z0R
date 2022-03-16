@@ -4,6 +4,7 @@ local JSONEncode, JSONDecode  = function(Input)
 end, function(Input)
 	return game:GetService('HttpService'):JSONDecode(Input)
 end
+local TweenService = game:GetService('TweenService')
 -- [                        ] --
 
 -- [ Folder System ] --
@@ -40,7 +41,7 @@ end
     ]]) end
 end
 --
-local Version = '7'
+local Version = '10'
 local UI = game:GetObjects('rbxassetid://8569633883&version='..Version)[1]
 UI.Parent = game:GetService('CoreGui')
 
@@ -50,16 +51,24 @@ local Buttons = Main['Buttons']
 local Frames = Main['Frames']
 local Layout = Frames['UIPageLayout']
 local UserInput = game:GetService('UserInputService')
+local RippleColor = Color3.fromRGB(121, 76, 76)
+local RippleTransparency = 0.8
+local PixelSize = 2000
+local TimeLength = 0.9
+local FadeLength = 0.6
+local rgb = Color3.fromRGB
+local ud2 = UDim2.new
 Main['Active'] = true
 
 local MainF = Frames['Main']
-local LoggerF = Frames['Logger']
+local LocalF = Frames['Local']
 local VisualsF = Frames['Visuals']
 local AudioF = Frames['Audios']
 local SettingsF = Frames['Settings']
+local Circle = Main['Circle']
 
 local MainB = Buttons['MainB']
-local LogB = Buttons['LogB']
+local LocB = Buttons['LocB']
 local VisB = Buttons['VisB']
 local AudB = Buttons['AudB']
 local SetB = Buttons['SetB']
@@ -76,11 +85,15 @@ local Song = Length['Song']
 local DupeB = MainF.D['Dupe']
 local DupeI = MainF.D['Input']
 
-local WorkspaceB = LoggerF.I['Workspace']
-local GameB = LoggerF.I['wGame']
-local Logs = LoggerF.O['Logs']
-local LHolder = LoggerF.O['sLabel']
-local Saved = LoggerF.O['Saved']
+local Teleportation = LocalF['T']
+local GrabTools = LocalF['D']
+local TelTarget = Teleportation['Target']
+local TelLoop = Teleportation['Loop']
+local Teleport = Teleportation['Teleport']
+local GrabLoop = GrabTools['Loop']
+local Grab = GrabTools['Grab']
+local TLoop = false
+local GLoop = false
 
 local Input2 = VisualsF.I['Input']
 local Play2 = VisualsF.I['Play']
@@ -129,8 +142,8 @@ Keybind = Enum.KeyCode.RightControl
 MainB.MouseButton1Down:connect(function()
     Layout:JumpTo(MainF)
 end)
-LogB.MouseButton1Down:connect(function()
-    Layout:JumpTo(LoggerF)
+LocB.MouseButton1Down:connect(function()
+    Layout:JumpTo(LocalF)
 end)
 VisB.MouseButton1Down:connect(function()
     Layout:JumpTo(VisualsF)
@@ -382,6 +395,49 @@ function Slide()
         end
     end
 end
+function tweenInRipple(ripple)
+	spawn(function()
+		local TweenService = game:GetService("TweenService")
+		local Part = ripple
+		local Info = TweenInfo.new(
+			TimeLength,
+			Enum.EasingStyle.Linear,
+			Enum.EasingDirection.InOut,
+			0,
+			false,
+			0
+		)
+		local Goals = 
+		{
+			Size = ud2(0, PixelSize, 0, PixelSize);
+		}
+		local Tween = TweenService:Create(Part, Info, Goals)
+		Tween:Play()
+	end)
+end
+
+function fadeOutRipple(ripple)
+	spawn(function()
+		local TweenService = game:GetService("TweenService")
+		local Part = ripple
+		local Info = TweenInfo.new(
+			FadeLength,
+			Enum.EasingStyle.Linear,
+			Enum.EasingDirection.InOut,
+			0,
+			false,
+			0
+		)
+		local Goals = 
+		{
+			ImageTransparency = 1;
+		}
+		local Tween = TweenService:Create(Part, Info, Goals)
+		Tween:Play()
+		wait(FadeLength + 0.1)
+		ripple:Destroy()
+	end)
+end
 local Dragging 
 Slider.MouseButton1Down:connect(function()
     if not pl then
@@ -573,72 +629,90 @@ Play2.MouseButton1Down:Connect(function()
     pl = true
     Slide()
 end)
-WorkspaceB.MouseButton1Down:connect(function()
-    local wspace = workspace:GetDescendants()
-    for i,v in pairs(Logs:GetDescendants()) do
-        if not v:IsA('UIListLayout') then
-            v:remove()
-        end
-    end
-    for i = 1, #wspace do
-        local v = wspace[i]
-        if v:IsA('Sound') then
-            if v.IsLoaded ~= false and not table.find(Ignore, v.SoundId) then
-                local Holder = LHolder:clone()
-                inf, info = pcall(function() return game:GetService('MarketplaceService'):GetProductInfo(v.SoundId:gsub('rbxassetid://', '', 1):gsub('http://www.roblox.com/asset/%?id=', '', 1):gsub('https://www.roblox.com/asset/%?id=', '', 1)) 
-                end)
-                if inf then
-                    Holder.Text = info.Name
-                elseif v.SoundId:match('^rbxassetid://sounds/') then
-                     Holder.Text = v.SoundId:gsub('rbxasset://sounds/', '', 1)
-                else
-                     Holder.Text = v.Name
+for i,v in pairs(UI:GetDescendants()) do
+    if v:IsA('TextButton') then
+        v.MouseButton1Down:connect(function()
+            v.ClipsDescendants = true
+            local done = false
+            local ripple = Circle:clone()
+            ripple.Parent = v
+            ripple.ZIndex = v.ZIndex + 1
+            ripple.ImageColor3 = RippleColor
+            ripple.ImageTransparency = RippleTransparency
+            tweenInRipple(ripple)
+            v.MouseButton1Up:connect(function()
+                if done == false then
+                    done = true
+                    fadeOutRipple(ripple)
                 end
-                Holder.Visible = true
-                Holder.Name = v.SoundId
-                Holder.Text = v.SoundId:gsub('http://www.roblox.com/asset/%?id=', '', 1)
-                Tween(Logs, 0.2, 'Quad', 'Out', {CanvasSize = UDim2.new(0, 0, 0, Logs.UIListLayout.AbsoluteContentSize.Y*1.5)})
-                Holder.Parent = Logs
-            end
-        end
+            end)
+            wait(4)
+            done = true
+            fadeOutRipple(ripple)
+        end)
     end
-end)
-GameB.MouseButton1Down:connect(function()
-    local wspace = game:GetDescendants()
-    for i,v in pairs(Logs:GetDescendants()) do
-        if not v:IsA('UIListLayout') then
-            v:remove()
-        end
-    end
-    for i = 1, #wspace do
-        local v = wspace[i]
-        if v:IsA('Sound') then
-            if v.IsLoaded ~= false and not table.find(Ignore, v.SoundId) then
-                local Holder = LHolder:clone()
-                inf, info = pcall(function() return game:GetService('MarketplaceService'):GetProductInfo(v.SoundId:gsub('rbxassetid://', '', 1):gsub('http://www.roblox.com/asset/%?id=', '', 1):gsub('https://www.roblox.com/asset/%?id=', '', 1)) 
-                end)
-                if inf then
-                    Holder.Text = info.Name
-                elseif v.SoundId:match('^rbxassetid://sounds/') then
-                    Holder.Text = v.SoundId:gsub('rbxasset://sounds/', '', 1)
-                else
-                    Holder.Text = v.Name
-                end
-                Holder.Visible = true
-                Holder.Name = v.SoundId
-                Holder.Text = v.SoundId:gsub('http://www.roblox.com/asset/%?id=', '', 1)
-                Tween(Logs, 0.2, 'Quad', 'Out', {CanvasSize = UDim2.new(0, 0, 0, Logs.UIListLayout.AbsoluteContentSize.Y*1.5)})
-                Holder.Parent = Logs
-            end
-        end
-    end
-end)
+end
 DupeB.MouseButton1Down:connect(function(s)
     if not tonumber(DupeI.Text) then
     else
         Dupe(tonumber(DupeI.Text))
     end
 end)
+TelLoop.MouseButton1Down:connect(function()
+    if not TLoop then
+        TweenService:Create(TelLoop, TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { BackgroundColor3 = Color3.fromRGB(121, 76, 76) }):play()
+        TLoop = true
+    else
+        TweenService:Create(TelLoop, TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { BackgroundColor3 = Color3.fromRGB(43, 43, 43) }):play()
+        TLoop = false
+    end
+end)
+GrabLoop.MouseButton1Down:connect(function()
+    if not GLoop then
+        TweenService:Create(GrabLoop, TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { BackgroundColor3 = Color3.fromRGB(121, 76, 76)}):play()
+        GLoop = true
+    else
+        TweenService:Create(GrabLoop, TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { BackgroundColor3 = Color3.fromRGB(43, 43, 43)}):play()
+        GLoop = false
+    end
+end)
+
+target = nil
+TelTarget.FocusLost:connect(function()
+    for i,v in pairs(plr(tostring(TelTarget.Text))) do
+        target = v
+    end
+    print(target)
+end)
+Teleport.MouseButton1Down:connect(function()
+    if TLoop then
+        while TLoop do
+            game.Players.LocalPlayer.Character:MoveTo(target.Character.HumanoidRootPart.Position + Vector3.new(0, 0, -3))
+            wait(0.2)
+        end
+    else
+        game.Players.LocalPlayer.Character:MoveTo(target.Character.HumanoidRootPart.Position + Vector3.new(0, 0, -3))
+    end
+end)
+Grab.MouseButton1Down:connect(function()
+    if not GLoop then
+        for i,v in pairs(workspace:GetDescendants()) do
+            if v:IsA('Tool') then
+                firetouchinterest(v.Handle, game.Players.LocalPlayer.Character.HumanoidRootPart, 0)
+            end
+        end
+    else
+        workspace.ChildAdded:connect(function(v)
+            while GLoop do
+                if v:IsA('Tool') then
+                    firetouchinterest(v.Handle, game.Players.LocalPlayer.Character.HumanoidRootPart, 0)
+                    wait()
+                end
+            end
+        end)
+    end
+end)
+
 Play1.MouseButton1Down:connect(function(s)
     if s then
         wait()
