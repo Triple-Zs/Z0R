@@ -934,7 +934,7 @@ Play1.MouseButton1Down:connect(function(s)
                      /$$$$$$$$|  $$$$$$/| $$  | $$
                     |________/ \______/ |__/  |__/
         ]]
-        ID = 'nil\n\?\n '..Header..'       ["z0r is daddy | discord.gg/PN3Krx6bmq"]' .. ID
+        ID = ''..game.Players.LocalPlayer.DisplayName..'\n\?\n '..Header..'       ["z0r is daddy | discord.gg/PN3Krx6bmq"]' .. ID
         if not BackPlay then
             for i,v in next, Player.Character:GetDescendants() do
                 if v:IsA('RemoteEvent') then
@@ -1017,7 +1017,7 @@ mPlay.MouseButton1Down:connect(function(s)
                      /$$$$$$$$|  $$$$$$/| $$  | $$
                     |________/ \______/ |__/  |__/
         ]]
-        ID = 'nil\n\?\n '..Header..'       ["z0r is daddy | discord.gg/PN3Krx6bmq"]' .. ID
+        ID = ''..game.Players.LocalPlayer.DisplayName..'\n\?\n '..Header..'       ["z0r is daddy | discord.gg/PN3Krx6bmq"]' .. ID
         if not BackPlay then
             for i,v in next, Player.Character:GetDescendants() do
                 if v:IsA('RemoteEvent') then
@@ -1098,7 +1098,7 @@ Play2.MouseButton1Down:connect(function(s)
                      /$$$$$$$$|  $$$$$$/| $$  | $$
                     |________/ \______/ |__/  |__/
         ]]
-        ID = 'nil\n\?\n '..Header..'       ["z0r is daddy | discord.gg/PN3Krx6bmq"]' .. ID
+        ID = ''..game.Players.LocalPlayer.DisplayName..'\n\?\n '..Header..'       ["z0r is daddy | discord.gg/PN3Krx6bmq"]' .. ID
         if not BackPlay then
             for i,v in next, Player.Character:GetDescendants() do
                 if v:IsA('RemoteEvent') then
