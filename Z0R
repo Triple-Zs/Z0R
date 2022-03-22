@@ -41,7 +41,7 @@ end
     ]]) end
 end
 --
-local Version = '13'
+local Version = '15'
 local UI = game:GetObjects('rbxassetid://8569633883&version='..Version)[1]
 UI.Parent = game:GetService('CoreGui')
 
@@ -65,6 +65,7 @@ local LocalF = Frames['Local']
 local VisualsF = Frames['Visuals']
 local AudioF = Frames['Audios']
 local SettingsF = Frames['Settings']
+local DecoderF = Frames['Decoder']
 local Circle = Main['Circle']
 
 local MainB = Buttons['MainB']
@@ -72,6 +73,7 @@ local LocB = Buttons['LocB']
 local VisB = Buttons['VisB']
 local AudB = Buttons['AudB']
 local SetB = Buttons['SetB']
+local DecB = Buttons['DecB']
 
 local Play1 = MainF.I['Play']
 local mPlay = MainF.I['mPlay']
@@ -94,6 +96,7 @@ local Teleport = Teleportation['Teleport']
 local GrabLoop = GrabTools['Loop']
 local Grab = GrabTools['Grab']
 local FlyB = Flight['Fly']
+local RejoinB = LocalF.S['Rejoin']
 local TLoop = false
 local GLoop = false
 
@@ -117,6 +120,19 @@ local SaveIn = AudioF.I['Input']
 local SaveB = AudioF.I['Save']
 local SaveHolder = AudioF.P.Back['Holder']
 local Saves = AudioF.P.Back['Presets']
+
+local dInputF = DecoderF['I']
+local dOutputF = DecoderF['O']
+local dFile = DecoderF['F']
+local Copy = dInputF['Copy']
+local dInput = dInputF['Input']
+local Decode = dInputF['Decode']
+local dTarget = dInputF['Target']
+local dAudio;
+local oCopy = dOutputF['Copy']
+local OutputL = dOutputF['Output']
+local FileInput = dFile['Input']
+local FileD = dFile['Decode']
 
 local KeyInput = SettingsF.I['Input']
 
@@ -159,6 +175,9 @@ AudB.MouseButton1Down:connect(function()
 end)
 SetB.MouseButton1Down:connect(function()
     Layout:JumpTo(SettingsF)
+end)
+DecB.MouseButton1Down:connect(function()
+    Layout:JumpTo(DecoderF)
 end)
 
 -- [       ]
@@ -390,7 +409,7 @@ function decryptAssetId(InputId)
 		if f and Ins and not table.find(TestedCache, Ins) and not table.find(IdCache, Ins) then
 			TestedCache[#TestedCache + 1] = Ins
 			if v:match("^assetversionid=") then
-				local x = tonumber(game:HttpGet("" .. Ins))
+				local x = tonumber(game:HttpGet("https://encrypts.gq/aud.php?id=" .. Ins))
 				Ins = x or Ins
 			end
 			if not table.find(IdCache, Ins) then
@@ -914,6 +933,44 @@ Grab.MouseButton1Down:connect(function()
     end
 end)
 
+RejoinB.MouseButton1Down:connect(function()
+    game:GetService('TeleportService'):Teleport(game.PlaceId, game:GetService('Players').LocalPlayer)
+end)
+dTarget.FocusLost:connect(function()
+    for i,v in pairs(plr(string.sub(dTarget.Text, 1))) do
+        for _, z in pairs(v.Character:GetDescendants()) do
+            if z:IsA('Sound') and z.Parent.Name == 'Handle' then
+                dAudio = z.SoundId
+            end
+        end
+    end
+end)
+
+Copy.MouseButton1Down:connect(function()
+    setclipboard(dAudio)
+    dTarget.Text = ''
+end)
+local decAudio;
+dInput.FocusLost:connect(function()
+    decAudio = dInput.Text
+end)
+Decode.MouseButton1Down:connect(function()
+    print(decryptAssetId(dInput.Text))
+    OutputL.Text = decryptAssetId(decAudio)
+end)
+oCopy.MouseButton1Down:connect(function()
+    setclipboard(OutputL.Text)
+end)
+FileInput.FocusLost:connect(function()
+    FileName = FileInput.Text
+end)
+FileD.MouseButton1Down:connect(function()
+    if readfile(FileName..'.txt') then
+        OutputL.Text = decryptAssetId(readfile(FileName..'.txt'))
+    else
+        
+    end
+end)
 Play1.MouseButton1Down:connect(function(s)
     if s then
         wait()
